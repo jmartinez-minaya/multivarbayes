@@ -7,7 +7,7 @@
 \method{plot}{mlvr}(x, ...)
 }
 \arguments{
-\item{x}{An object of class mlvr, containing posterior simulations of the model.}
+\item{x}{An object of class `mlvr` containing posterior simulations of the model.}
 
 \item{...}{Additional arguments (currently unused).}
 }
@@ -15,9 +15,6 @@
 A list of ggplot objects: one for the fixed effects and one for the hyperparameters.
 }
 \description{
-This function generates plots for the posterior distributions of the fixed effects
-and hyperparameters for objects of class mlvr.
-}
-\author{
-Joaquín Martínez-Minaya \email{jmarmin@eio.upv.es}
+This function generates density plots for the posterior distributions of the fixed effects
+and hyperparameters of a fitted Bayesian multivariate linear model.
 }

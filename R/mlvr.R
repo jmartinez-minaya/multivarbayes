@@ -10,6 +10,7 @@
 #' @param Y Matrix of response variables.
 #' @return A summary of the fixed effects (mean, sd, quantiles) for each predictor and response variable.
 #' @author Joaquín Martínez-Minaya \email{jmarmin@eio.upv.es}
+#' @importFrom stats sd quantile density
 #' @export
 summarize_fixed_effects <- function(B_sims, X, Y) {
   summary_fixed <- list()
@@ -149,6 +150,8 @@ format_marginals_random <- function(Sigma_sims) {
 #' @return A list containing summaries, simulations of fixed effects and hyperparameters, and the fitted model.
 #' @import MASS
 #' @import MCMCpack
+#' @importFrom stats model.frame model.response model.matrix
+
 #' @examples
 #' \dontrun{
 #' data <- data.frame(X1 = rnorm(100), X2 = rnorm(100), Y1 = rnorm(100), Y2 = rnorm(100))
@@ -273,22 +276,21 @@ summary.mlvr <- function(object, ...) {
   print(summary_hyperpar)
 }
 
-
 #' Plot Posterior Distributions for a Bayesian Multivariate Linear Model
 #'
-#' This function generates plots for the posterior distributions of the fixed effects
-#' and hyperparameters for objects of class mlvr.
+#' This function generates density plots for the posterior distributions of the fixed effects
+#' and hyperparameters of a fitted Bayesian multivariate linear model.
 #'
-#' @param x An object of class mlvr, containing posterior simulations of the model.
+#' @param x An object of class `mlvr` containing posterior simulations of the model.
 #' @param ... Additional arguments (currently unused).
 #' @return A list of ggplot objects: one for the fixed effects and one for the hyperparameters.
 #' @import ggplot2
-#' @import tidyr
-#' @import dplyr
+#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr mutate everything
 #' @export
-#' @author Joaquín Martínez-Minaya \email{jmarmin@eio.upv.es}
 plot.mlvr <- function(x, ...) {
   object <- x
+  
   # 1. Plot for fixed effects (Marginal B | Y, X)
   # Convert the list of marginals.fixed into a single data frame for plotting
   fixed_effects_df <- do.call(rbind, lapply(names(object$marginals.fixed), function(response_var) {
@@ -301,12 +303,12 @@ plot.mlvr <- function(x, ...) {
   fixed_effects_df$response <- as.factor(fixed_effects_df$response)
   
   # Reshape the data to long format for ggplot2
-  fixed_effects_long <- pivot_longer(fixed_effects_df, cols = -response, names_to = "predictor", values_to = "posterior_samples")
+  fixed_effects_long <- tidyr::pivot_longer(fixed_effects_df, cols = -response, names_to = "predictor", values_to = "posterior_samples")
   
   # Generate density plots for fixed effects with subplots for each predictor and color by response
-  fixed_effects_plot <- ggplot(fixed_effects_long, aes(x = posterior_samples, fill = response, color = response)) +
+  fixed_effects_plot <- ggplot(fixed_effects_long, aes(x = .data$posterior_samples, fill = .data$response, color = .data$response)) +
     geom_density(alpha = 0.4, size = 0.7) +
-    facet_wrap(~ predictor, scales = "free") +
+    facet_wrap(~ .data$predictor, scales = "free") +
     theme_minimal() +
     labs(title = "Posterior Densities of Fixed Effects",
          x = "Posterior Samples",
@@ -323,12 +325,12 @@ plot.mlvr <- function(x, ...) {
   hyperparameter_df <- object$marginals.hyperpar
   
   # Reshape the data frame to long format for ggplot2
-  hyperparameter_long <- pivot_longer(hyperparameter_df, cols = everything(), names_to = "hyperparameter", values_to = "posterior_samples")
+  hyperparameter_long <- tidyr::pivot_longer(hyperparameter_df, cols = dplyr::everything(), names_to = "hyperparameter", values_to = "posterior_samples")
   
   # Generate density plots for hyperparameters with subplots for each hyperparameter
-  hyperparameter_plot <- ggplot(hyperparameter_long, aes(x = posterior_samples)) +
+  hyperparameter_plot <- ggplot(hyperparameter_long, aes(x = .data$posterior_samples)) +
     geom_density(alpha = 0.7, fill = "#0072B2") +
-    facet_wrap(~ hyperparameter, scales = "free") +
+    facet_wrap(~ .data$hyperparameter, scales = "free") +
     theme_minimal() +
     labs(title = "Posterior Densities of Hyperparameters",
          x = "Posterior Samples",
@@ -336,8 +338,10 @@ plot.mlvr <- function(x, ...) {
     theme(strip.text = element_text(size = 10, face = "bold"),
           strip.background = element_rect(fill = "#f0f0f0"))
   
+  # Return a list of the two ggplot objects
   return(list(fixed_effects_plot = fixed_effects_plot, hyperparameter_plot = hyperparameter_plot))
 }
+
 
 
 #' Predictive Distribution for Bayesian Multivariate Linear Model (Analytical and Simulated)
