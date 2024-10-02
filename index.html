@@ -50,8 +50,82 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-A package to fit a multivariate linear model with Bayesian inference using t-distributions.
+  <main id="main" class="col-md-9"><div class="section level1">
+<div class="page-header"><h1 id="multivarbayes">multivarbayes<a class="anchor" aria-label="anchor" href="#multivarbayes"></a>
+</h1></div>
+<p>The goal of <strong>multivarbayes</strong> is to fit Bayesian multivariate linear regression models using conjugate priors. This package allows users to specify their own prior distributions or use default settings for natural conjugate priors. The model supports simulation-based posterior inference for both the regression coefficients and the covariance structure of the residuals.</p>
+<div class="section level3">
+<h3 id="key-features">Key features<a class="anchor" aria-label="anchor" href="#key-features"></a>
+</h3>
+<ul>
+<li>Supports conjugate Bayesian multivariate linear regression.</li>
+<li>Simulates posterior distributions for regression coefficients and covariance matrices.</li>
+<li>Computes analytical and simulated posterior predictive distributions.</li>
+<li>Includes summary and visualization functions for posterior distributions.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p><strong>multivarbayes</strong> is not yet available on CRAN. You can install the development version from <a href="https://github.com/jmartinez-minaya/multivarbayes" class="external-link">GitHub</a> with:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Install the development version from GitHub</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"jmartinez-minaya/multivarbayes"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+</h2>
+<p>Here is a basic example of how to fit a multivariate linear model using <code>multivarbayes</code> and summarize the results:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">multivarbayes</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulate some example data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span>  <span class="co"># Number of observations</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">2</span>    <span class="co"># Number of predictors</span></span>
+<span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fl">3</span>    <span class="co"># Number of response variables</span></span>
+<span></span>
+<span><span class="co"># Generate predictors</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="va">p</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Generate response variables with some covariance structure</span></span>
+<span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.5</span>, <span class="fl">0.3</span>,</span>
+<span>                  <span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">0.4</span>,</span>
+<span>                  <span class="fl">0.3</span>, <span class="fl">0.4</span>, <span class="fl">1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">m</span><span class="op">)</span></span>
+<span><span class="va">Beta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">0.5</span>, </span>
+<span>                 <span class="fl">1</span>,  <span class="fl">2</span>, <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">p</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">X</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">Beta</span> <span class="op">+</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span><span class="va">n</span>, mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">m</span><span class="op">)</span>, Sigma <span class="op">=</span> <span class="va">Sigma</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fit the Bayesian multivariate linear model</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/mlvr.html">mlvr</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">X1</span> <span class="op">+</span> <span class="va">X2</span>, data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">Y</span>, X1 <span class="op">=</span> <span class="va">X</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span>, X2 <span class="op">=</span> <span class="va">X</span><span class="op">[</span>, <span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Summarize the fitted model</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Plot posterior distributions</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="additional-resources">Additional Resources<a class="anchor" aria-label="anchor" href="#additional-resources"></a>
+</h2>
+<ul>
+<li>For a detailed tutorial on fitting a Bayesian multivariate linear regression model, check out the vignette: <a href="vignettes/multivarbayes-vignette.Rmd">Link to vignette</a>
+</li>
+<li>To see a simulated example and explore the posterior distributions, refer to the vignette section on simulations: <a href="vignettes/simulation.Rmd">Link to simulations</a>
+</li>
+</ul>
+<div class="section level3">
+<h3 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h3>
+<p>The underlying methodology is based on standard Bayesian multivariate linear regression models, with posterior inference carried out using conjugate priors for both the regression coefficients and the covariance structure of the residuals.</p>
+</div>
+<div class="section level3">
+<h3 id="issues">Issues<a class="anchor" aria-label="anchor" href="#issues"></a>
+</h3>
+<p>If you encounter any problems or have suggestions for improvements, please open an <a href="https://github.com/jmartinez-minaya/multivarbayes/issues" class="external-link">issue</a>.</p>
+</div>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
