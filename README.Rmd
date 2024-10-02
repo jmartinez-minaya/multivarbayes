@@ -13,6 +13,15 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+<!-- badges: start -->
+  [![R-CMD-check](https://github.com/jmartinez-minaya/multivarbayes/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jmartinez-minaya/multivarbayes/actions/workflows/R-CMD-check.yaml)
+  <!-- badges: end -->
+  [Copied to clipboard]
+  <!-- badges: start -->
+  [![R-CMD-check](https://github.com/jmartinez-minaya/multivarbayes/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jmartinez-minaya/multivarbayes/actions/workflows/R-CMD-check.yaml)
+  <!-- badges: end -->
+
 # multivarbayes
 
 The goal of **multivarbayes** is to fit Bayesian multivariate linear regression models using conjugate priors. This package allows users to specify their own prior distributions or use default settings for natural conjugate priors. The model supports simulation-based posterior inference for both the regression coefficients and the covariance structure of the residuals.

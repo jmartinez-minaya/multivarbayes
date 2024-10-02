@@ -173,11 +173,10 @@ mlvr <- function(formula, data, priors = list(), n_sims = 1000) {
   m <- ncol(Y)  # Number of response variables
   
   # Priors: Use default priors if not provided
-  A <- priors$A %||% diag(k)  # Precision matrix for B
-  V0 <- priors$V0 %||% diag(m)  # Scale matrix for Sigma
-  nu0 <- priors$nu0 %||% m + 2  # Degrees of freedom for the inverse-Wishart distribution
-  B0 <- priors$B0 %||% matrix(0, nrow = k, ncol = m)  # Prior for B
-  
+  A <- if (is.null(priors$A)) diag(k) else priors$A  # Precision matrix for B
+  V0 <- if (is.null(priors$V0)) diag(m) else priors$V0  # Scale matrix for Sigma
+  nu0 <- if (is.null(priors$nu0)) m + 2 else priors$nu0  # Degrees of freedom for the inverse-Wishart distribution
+  B0 <- if (is.null(priors$B0)) matrix(0, nrow = k, ncol = m) else priors$B0  # Prior for B  
   # Least squares estimate for B (B_hat)
   B_hat <- solve(t(X) %*% X) %*% t(X) %*% Y
   
