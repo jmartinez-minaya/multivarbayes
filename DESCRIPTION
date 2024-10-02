@@ -1,0 +1,26 @@
+Package: multivarbayes
+Type: Package
+Title: Multivariate Bayesian Model
+Version: 0.1
+Date: 2024-09-25
+Authors@R: c(
+  person("Joaquín Martínez-Minaya", email = "jomarminaya@gmail.com", 
+         role = c("aut", "cre", "ctb"),
+         comment = c(ORCID = "0000-0002-1016-8734"))
+  )
+Imports:
+    ggplot2,
+    tidyr,
+    mvtnorm,
+    dplyr,
+    MCMCpack,
+    MASS
+Suggests:
+    knitr,
+    rmarkdown,
+    ks
+Encoding: UTF-8
+Description: A package to fit a multivariate linear model with Bayesian inference using t-distributions.
+License: MIT + file LICENSE
+RoxygenNote: 7.3.2
+VignetteBuilder: knitr

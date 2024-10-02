@@ -1,0 +1,12 @@
+inst/doc
+.Rproj.user/
+multivarbayes.Rproj
+.Rprofile
+.httr-oauth
+.DS_Store
+/doc/
+/Meta/
+docs/
+.Rhistory
+docs
+instruction_package.R

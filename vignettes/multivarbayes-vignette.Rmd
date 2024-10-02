@@ -1,0 +1,207 @@
+---
+title: "Multivariate linear regression"
+author: "Joaquín Martínez-Minaya"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Multivarbayes Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+This vignette demonstrates how to use the **multivarbayes** package to fit a Bayesian multivariate linear regression model, summarize the results, plot the posterior distributions, and make predictions on new data.
+
+### Example Usage
+
+```{r setup, include=FALSE}
+library(multivarbayes)
+```
+
+### Generate Example Data
+
+We generate some example data with an intercept term and multivariate normal errors.
+
+```{r}
+# Load required packages
+library(MASS)   # for mvrnorm
+library(ggplot2) # for plotting
+library(ks)      # for kernel density estimates
+library(MCMCpack)
+library(dplyr)
+
+set.seed(123)
+n <- 1000  # number of observations
+k <- 3    # number of covariates (including intercept)
+m <- 2    # number of response variables
+nsims <- 1000
+
+# Covariate matrix with intercept
+X <- cbind(1, matrix(rnorm(n * (k - 1)), n, k - 1))  
+
+# True coefficients
+B_true <- matrix(c(1, 0.5, -0.3, 2, -0.5, 1), ncol = m)
+
+# Multivariate normal errors
+Sigma_true <- matrix(c(1, 0.3, 0.3, 1), ncol = m)
+errors <- MASS::mvrnorm(n, mu = rep(0, m), Sigma = Sigma_true)
+
+# Response matrix
+Y <- X %*% B_true + errors  
+
+# Combine into data frame
+data <- data.frame(cbind(Y, X))
+colnames(data) <- c("Y1", "Y2", "Intercept", "X1", "X2")
+```
+
+### Fit the Model
+
+We fit the model using the `mlvr` function and the formula interface.
+
+```{r}
+formula <- as.matrix(data[, c("Y1", "Y2")]) ~  X1 + X2
+model_fit <- mlvr(formula, data = data)
+```
+
+### Summarize the Fitted Model
+
+We can summarize the fitted model to inspect the posterior distributions of the coefficients and the scale matrix of Sigma.
+
+```{r}
+summary(model_fit)
+```
+
+### Plot Posterior Distributions
+
+To visualize the posterior distributions of the coefficients, we can use the `plot` method.
+
+```{r}
+plot(model_fit)
+
+```
+
+
+```{r}
+B_true
+summary(model_fit)
+```
+
+
+### Predict New Observations
+
+Finally, we can use the `predict` function to predict responses for new observations based on the fitted model.
+
+```{r}
+
+# Example usage:
+# Assuming model_fit is the fitted object and newdata is the new data to predict on
+newdata <- data.frame(X1 = c(0.5, -1, 2), X2 = c(-0.5, 1.5, 0))  # New covariate values
+newdata <- data[1:5, c("X1", "X2")]
+newdata_real <- data[1:5, c("Y1", "Y2")]
+
+predictions <- predict(model_fit, newdata = newdata)
+```
+
+
+
+
+
+```{r}
+# Extract predictions
+predictive_simulated <- predictions$simulated$predictive_samples  # Simulated predictive samples
+predictive_mean <- predictions$analytical$mean                    # Theoretical predictive mean
+predictive_cov <- predictions$analytical$cov_matrix               # Theoretical predictive covariance
+df <- predictions$analytical$df                                   # Degrees of freedom for t-Student distribution
+
+# Create a data frame for storing simulated predictive samples
+simulated_data <- data.frame()
+n_sims <- dim(predictive_simulated)[3]  # Number of simulations
+n_obs <- nrow(newdata)                  # Number of new observations
+n_responses <- ncol(predictive_simulated)  # Number of response variables
+
+# Construct a data frame for simulated samples using loops
+for (obs in 1:n_obs) {
+  for (i in 1:n_sims) {
+    sim_values <- predictive_simulated[obs, , i]  # Extract simulated values for each response variable
+    sim_df <- data.frame(
+      Observation = paste0("Obs_", obs),          # Label each observation
+      Response = paste0("Y", 1:n_responses),      # Response variable names (Y1, Y2, ...)
+      Value = sim_values,                         # Simulated values for each response
+      Group = "Simulated"                         # Group label to distinguish simulated from theoretical
+    )
+    simulated_data <- rbind(simulated_data, sim_df)
+  }
+}
+
+# Create a data frame for theoretical densities
+theoretical_data <- data.frame()
+
+# Calculate the theoretical density for each observation and response variable
+for (obs in 1:n_obs) {
+  for (resp in 1:n_responses) {
+    mean_val <- predictive_mean[obs, resp]          # Theoretical mean for the response variable
+    var_val <- predictive_cov[resp, resp, obs]      # Variance of the response variable
+    
+    # Create a sequence of values for representing the theoretical density
+    x_vals <- seq(mean_val - 4 * sqrt(var_val), mean_val + 4 * sqrt(var_val), length.out = 500)
+    
+    # Calculate the density using the t-Student distribution
+    dens_vals <- dt((x_vals - mean_val) / sqrt(var_val), df = df) / sqrt(var_val)
+    
+    # Create a data frame to store the theoretical density values
+    theor_df <- data.frame(
+      Observation = paste0("Obs_", obs),
+      Response = paste0("Y", resp),
+      Value = x_vals,
+      Density = dens_vals,
+      Group = "Theoretical"
+    )
+    theoretical_data <- rbind(theoretical_data, theor_df)
+  }
+}
+
+# Recalculate the simulated densities using density() function for proper comparison
+simulated_densities <- simulated_data %>%
+  group_by(Observation, Response) %>%
+  do({
+    density_data <- density(.$Value, adjust = 1.2)  # Calculate density for simulated values
+    data.frame(Value = density_data$x, Density = density_data$y)  # Store density values
+  }) %>%
+  ungroup() %>%
+  mutate(Group = "Simulated")  # Label as "Simulated" for plotting
+
+# Combine theoretical and simulated densities into a single data frame for plotting
+plot_data <- rbind(simulated_densities, theoretical_data)
+
+# Create a data frame for real observed values
+real_values_data <- data.frame(
+  Observation = rep(paste0("Obs_", 1:n_obs), each = n_responses),
+  Response = rep(paste0("Y", 1:n_responses), times = n_obs),
+  Value = as.vector(t(newdata_real)),  # Convert real values to a single vector
+  Group = "Real"
+)
+
+# Plot histograms for simulated samples, lines for theoretical densities, and points for real values
+ggplot() +
+  # Histogram of simulated predictive samples
+  geom_histogram(data = simulated_data, aes(x = Value, y = ..density.., fill = Group), 
+                 bins = 30, alpha = 0.4, position = 'identity') +
+  # Line plot of theoretical densities
+  geom_line(data = theoretical_data, aes(x = Value, y = Density, color = Group), size = 1.2) +
+  # Points for real observed values
+  geom_point(data = real_values_data, aes(x = Value, y = 0, color = Group), size = 3, shape = 16) +
+  facet_grid(Response ~ Observation, scales = "free") +  # Facet by Response and Observation
+  labs(title = "Posterior Predictive Distribution for Each Observation",
+       x = "Value",
+       y = "Density") +
+  theme_minimal() +
+  theme(legend.position = "top", legend.title = element_text(face = "bold")) +
+  scale_fill_manual(values = c("orange", "blue")) +  # Colors for histograms
+  scale_color_manual(values = c("black", "red", "green")) +   # Colors for theoretical densities and real values
+  guides(fill = guide_legend(title = "Simulated vs Theoretical vs Real"), 
+         color = guide_legend(title = "Simulated vs Theoretical vs Real"))
+
+
+```
+
+
