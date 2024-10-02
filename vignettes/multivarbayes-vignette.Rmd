@@ -15,7 +15,7 @@ This vignette demonstrates how to use the **multivarbayes** package to fit a Bay
 ### Example Usage
 
 ```{r setup, include=FALSE}
-#library(multivarbayes)
+library(multivarbayes)
 ```
 
 ### Generate Example Data
