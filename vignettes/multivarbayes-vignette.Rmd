@@ -3,7 +3,7 @@ title: "Multivariate linear regression"
 author: "Joaquín Martínez-Minaya"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Multivarbayes Vignette}
+  %\VignetteIndexEntry{Multivariate linear regression}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,7 +15,7 @@ This vignette demonstrates how to use the **multivarbayes** package to fit a Bay
 ### Example Usage
 
 ```{r setup, include=FALSE}
-library(multivarbayes)
+#library(multivarbayes)
 ```
 
 ### Generate Example Data
