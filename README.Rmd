@@ -5,7 +5,6 @@ output: github_document
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/jmartinez-minaya/multivarbayes/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jmartinez-minaya/multivarbayes/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/jmartinez-minaya/multivarbayes/graph/badge.svg)](https://app.codecov.io/gh/jmartinez-minaya/multivarbayes)
 <!-- badges: end -->
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
