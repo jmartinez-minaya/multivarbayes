@@ -635,32 +635,39 @@ with:</p>
 <p>Here is a basic example of how to fit a multivariate linear model
 using <code>multivarbayes</code> and summarize the results:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(multivarbayes)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># Simulate some example data</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span>  <span class="co"># Number of observations</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">2</span>    <span class="co"># Number of predictors</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">3</span>    <span class="co"># Number of response variables</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co"># Generate predictors</span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p), <span class="at">nrow =</span> n))</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co"># Generate response variables with some covariance structure</span></span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.5</span>, <span class="fl">0.3</span>,</span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>                  <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="fl">0.4</span>,</span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>                  <span class="fl">0.3</span>, <span class="fl">0.4</span>, <span class="dv">1</span>), <span class="at">nrow =</span> m)</span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>Beta <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="fl">0.5</span>, </span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>                 <span class="dv">1</span>,  <span class="dv">2</span>, <span class="sc">-</span><span class="fl">0.5</span>), <span class="at">nrow =</span> p <span class="sc">+</span> <span class="dv">1</span>)</span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>Y <span class="ot">&lt;-</span> X <span class="sc">%*%</span> Beta <span class="sc">+</span> MASS<span class="sc">::</span><span class="fu">mvrnorm</span>(n, <span class="at">mu =</span> <span class="fu">rep</span>(<span class="dv">0</span>, m), <span class="at">Sigma =</span> Sigma)</span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co"># Fit the Bayesian multivariate linear model</span></span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">mlvr</span>(Y <span class="sc">~</span> X1 <span class="sc">+</span> X2, <span class="at">data =</span> <span class="fu">data.frame</span>(Y, <span class="at">X1 =</span> X[, <span class="dv">2</span>], <span class="at">X2 =</span> X[, <span class="dv">3</span>]))</span>
-<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a></span>
-<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co"># Summarize the fitted model</span></span>
-<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="fu">summary</span>(fit)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000</span>  <span class="co"># number of observations</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="dv">3</span>    <span class="co"># number of covariates (including intercept)</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">2</span>    <span class="co"># number of response variables</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>nsims <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># Covariate matrix with intercept</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> (k <span class="sc">-</span> <span class="dv">1</span>)), n, k <span class="sc">-</span> <span class="dv">1</span>))  </span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co"># True coefficients</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>B_true <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.5</span>, <span class="sc">-</span><span class="fl">0.3</span>, <span class="dv">2</span>, <span class="sc">-</span><span class="fl">0.5</span>, <span class="dv">1</span>), <span class="at">ncol =</span> m)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co"># Multivariate normal errors</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>Sigma_true <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.3</span>, <span class="fl">0.3</span>, <span class="dv">1</span>), <span class="at">ncol =</span> m)</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>errors <span class="ot">&lt;-</span> MASS<span class="sc">::</span><span class="fu">mvrnorm</span>(n, <span class="at">mu =</span> <span class="fu">rep</span>(<span class="dv">0</span>, m), <span class="at">Sigma =</span> Sigma_true)</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co"># Response matrix</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>Y <span class="ot">&lt;-</span> X <span class="sc">%*%</span> B_true <span class="sc">+</span> errors  </span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co"># Combine into data frame</span></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">cbind</span>(Y, X))</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="fu">colnames</span>(data) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Y1&quot;</span>, <span class="st">&quot;Y2&quot;</span>, <span class="st">&quot;Intercept&quot;</span>, <span class="st">&quot;X1&quot;</span>, <span class="st">&quot;X2&quot;</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a></span>
 <span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a></span>
-<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co"># Plot posterior distributions</span></span>
-<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="fu">plot</span>(fit)</span></code></pre></div>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co"># Fit the Bayesian multivariate linear model</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>formula <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(data[, <span class="fu">c</span>(<span class="st">&quot;Y1&quot;</span>, <span class="st">&quot;Y2&quot;</span>)]) <span class="sc">~</span>  X1 <span class="sc">+</span> X2</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>model_fit <span class="ot">&lt;-</span> <span class="fu">mlvr</span>(formula, <span class="at">data =</span> data)</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co"># Summarize the fitted model</span></span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a><span class="fu">summary</span>(model_fit)</span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a><span class="co"># Plot posterior distributions</span></span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a><span class="fu">plot</span>(model_fit)</span></code></pre></div>
 <h2 id="additional-resources">Additional Resources</h2>
 <ul>
 <li>For a detailed tutorial on fitting a Bayesian multivariate linear

@@ -22,7 +22,7 @@ library(multivarbayes)
 
 We generate some example data with an intercept term and multivariate normal errors.
 
-```{r}
+```{r, warning=FALSE, message = FALSE}
 # Load required packages
 library(MASS)   # for mvrnorm
 library(ggplot2) # for plotting

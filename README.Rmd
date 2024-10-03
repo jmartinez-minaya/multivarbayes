@@ -46,32 +46,39 @@ Here is a basic example of how to fit a multivariate linear model using `multiva
 
 ```{r example, eval = FALSE}
 library(multivarbayes)
-
-# Simulate some example data
 set.seed(123)
-n <- 100  # Number of observations
-p <- 2    # Number of predictors
-m <- 3    # Number of response variables
+n <- 1000  # number of observations
+k <- 3    # number of covariates (including intercept)
+m <- 2    # number of response variables
+nsims <- 1000
 
-# Generate predictors
-X <- cbind(1, matrix(rnorm(n * p), nrow = n))
+# Covariate matrix with intercept
+X <- cbind(1, matrix(rnorm(n * (k - 1)), n, k - 1))  
 
-# Generate response variables with some covariance structure
-Sigma <- matrix(c(1, 0.5, 0.3,
-                  0.5, 1, 0.4,
-                  0.3, 0.4, 1), nrow = m)
-Beta <- matrix(c(2, -1, 0.5, 
-                 1,  2, -0.5), nrow = p + 1)
-Y <- X %*% Beta + MASS::mvrnorm(n, mu = rep(0, m), Sigma = Sigma)
+# True coefficients
+B_true <- matrix(c(1, 0.5, -0.3, 2, -0.5, 1), ncol = m)
+
+# Multivariate normal errors
+Sigma_true <- matrix(c(1, 0.3, 0.3, 1), ncol = m)
+errors <- MASS::mvrnorm(n, mu = rep(0, m), Sigma = Sigma_true)
+
+# Response matrix
+Y <- X %*% B_true + errors  
+
+# Combine into data frame
+data <- data.frame(cbind(Y, X))
+colnames(data) <- c("Y1", "Y2", "Intercept", "X1", "X2")
+
 
 # Fit the Bayesian multivariate linear model
-fit <- mlvr(Y ~ X1 + X2, data = data.frame(Y, X1 = X[, 2], X2 = X[, 3]))
+formula <- as.matrix(data[, c("Y1", "Y2")]) ~  X1 + X2
+model_fit <- mlvr(formula, data = data)
 
 # Summarize the fitted model
-summary(fit)
+summary(model_fit)
 
 # Plot posterior distributions
-plot(fit)
+plot(model_fit)
 ```
 
 ## Additional Resources
