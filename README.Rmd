@@ -84,11 +84,15 @@ plot(model_fit)
 ## Additional Resources
 
 - For a detailed tutorial on fitting a Bayesian multivariate linear regression model, check out the vignette: [Link to vignette](vignettes/multivarbayes-vignette.Rmd)
-- To see a simulated example and explore the posterior distributions, refer to the vignette section on simulations: [Link to simulations](vignettes/simulation.Rmd)
+
 
 ### References
 
-The underlying methodology is based on standard Bayesian multivariate linear regression models, with posterior inference carried out using conjugate priors for both the regression coefficients and the covariance structure of the residuals.
+The underlying methodology is based on **standard Bayesian multivariate linear regression models**, with posterior inference carried out using conjugate priors for both the regression coefficients and the covariance structure of the residuals.
+
+- Gelman, A., Carlin, J. B., Stern, H. S., & Rubin, D. B. (1995). Bayesian data analysis. Chapman and Hall/CRC.
+
+- Rossi, P. E., & Allenby, G. M. (2003). Bayesian statistics and marketing. Marketing Science, 22(3), 304-328.
 
 ### Issues
 
