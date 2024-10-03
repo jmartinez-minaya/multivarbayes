@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   multivarbayes-vignette: multivarbayes-vignette.html
-last_built: 2024-10-03T07:21Z
+last_built: 2024-10-03T07:54Z
 urls:
   reference: https://jmartinez-minaya.github.io/multivarbayes/reference
   article: https://jmartinez-minaya.github.io/multivarbayes/articles
