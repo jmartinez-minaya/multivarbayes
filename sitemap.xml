@@ -1,19 +1,19 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
-<url><loc>/404.html</loc></url>
-<url><loc>/LICENSE-text.html</loc></url>
-<url><loc>/LICENSE.html</loc></url>
-<url><loc>/articles/index.html</loc></url>
-<url><loc>/articles/multivarbayes-vignette.html</loc></url>
-<url><loc>/authors.html</loc></url>
-<url><loc>/index.html</loc></url>
-<url><loc>/reference/format_marginals_fixed.html</loc></url>
-<url><loc>/reference/format_marginals_random.html</loc></url>
-<url><loc>/reference/index.html</loc></url>
-<url><loc>/reference/mlvr.html</loc></url>
-<url><loc>/reference/plot.mlvr.html</loc></url>
-<url><loc>/reference/predict.mlvr.html</loc></url>
-<url><loc>/reference/summarize_fixed_effects.html</loc></url>
-<url><loc>/reference/summarize_hyperparameters.html</loc></url>
-<url><loc>/reference/summary.mlvr.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/404.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/LICENSE-text.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/LICENSE.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/articles/index.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/articles/multivarbayes-vignette.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/authors.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/index.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/reference/format_marginals_fixed.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/reference/format_marginals_random.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/reference/index.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/reference/mlvr.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/reference/plot.mlvr.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/reference/predict.mlvr.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/reference/summarize_fixed_effects.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/reference/summarize_hyperparameters.html</loc></url>
+<url><loc>https://jmartinez-minaya.github.io/multivarbayes/reference/summary.mlvr.html</loc></url>
 </urlset>
 
