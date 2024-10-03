@@ -81,7 +81,7 @@ plot(model_fit)
 
 - For a detailed tutorial on fitting a Bayesian multivariate linear
   regression model, check out the vignette: [Link to
-  vignette](vignettes/multivarbayes-vignette.Rmd)
+  vignette](https://github.com/jmartinez-minaya/multivarbayes/blob/master/vignettes/multivarbayes-vignette.Rmd)
 
 ### References
 
