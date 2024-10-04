@@ -16,22 +16,62 @@ mlvr(formula, data, priors = list(), n_sims = 1000)
 \item{n_sims}{Number of posterior simulations. Default is 1000.}
 }
 \value{
-A list containing summaries, simulations of fixed effects and hyperparameters, and the fitted model.
+A list containing summaries, simulations of fixed effects and hyperparameters, and the analytic posterior distributions.
 }
 \description{
-This function fits a Bayesian multivariate linear regression model and returns a detailed output
-including summaries and simulations of fixed effects and hyperparameters.
+This function fits a Bayesian multivariate linear regression model using conjugate priors 
+and returns a detailed output, including summaries and simulations of fixed effects and 
+hyperparameters, as well as analytic posterior distributions.
 }
 \details{
-## Priors:
-- `A`: Precision matrix for `B`. Default is an identity matrix of size `k`.
-- `V0`: Scale matrix for the covariance matrix `Sigma`. Default is an identity matrix of size `m`.
-- `nu0`: Degrees of freedom for the inverse-Wishart distribution. Default is `m + 2`.
-- `B0`: Prior mean for the coefficients `B`. Default is a zero matrix.
+## Model and Priors:
+The model assumes a multivariate normal distribution for the response variables:
+\deqn{Y = XB + E}
+where \eqn{Y} is the matrix of response variables, \eqn{X} is the matrix of covariates,
+\eqn{B} is the matrix of coefficients, and \eqn{E} is the error matrix.
 
-## Posteriors:
-- The posterior of `B` follows a multivariate normal distribution.
-- The posterior of `Sigma` follows an inverse-Wishart distribution.
+The following prior distributions are used:
+- \eqn{B} | \eqn{\Sigma} follows a matrix-variate normal distribution:
+  \deqn{B | \Sigma \sim \mathcal{N}(B_0, \Sigma \otimes A^{-1})}
+- \eqn{\Sigma} follows an inverse-Wishart distribution:
+  \deqn{\Sigma \sim \text{IW}(\nu_0, V_0)}
+
+## Posterior Distributions:
+- The posterior of \eqn{B} given \eqn{\Sigma} is:
+  \deqn{B | \Sigma, Y, X \sim \mathcal{N}(B_n, \Sigma \otimes (X'X + A)^{-1})}
+- The marginal posterior of \eqn{\Sigma} given \eqn{Y, X} is:
+  \deqn{\Sigma | Y, X \sim \text{IW}(\nu_0 + n, V_0 + S)}
+
+The analytic forms of the posterior parameters are computed as follows:
+- \eqn{B_n = (X'X + A)^{-1}(X'Y + A B_0)}
+- \eqn{V_n = V_0 + S}, where \eqn{S = (Y - X B_n)'(Y - X B_n) + (B_n - B_0)' A (B_n - B_0)}
+
+## Output:
+The function returns a list containing:
+- `summary.fixed`: A summary of the marginal posterior distributions of the fixed effects.
+- `marginals.fixed`: A list with the simulations of the fixed effects.
+- `summary.hyperpar`: A summary of the posterior distributions of the hyperparameters (elements of \eqn{\Sigma}).
+- `marginals.hyperpar`: A list with the simulations of the hyperparameters.
+- `analytic`: A list containing the following analytic posterior parameters:
+  - `B_n`: The posterior mean of the coefficient matrix \eqn{B}, calculated as \eqn{(X'X + A)^{-1}(X'Y + A B_0)}.
+  - `V_n`: The posterior scale matrix for the inverse-Wishart distribution of \eqn{\Sigma}, given by \eqn{V_0 + S}.
+  - `df`: The degrees of freedom for the marginal posterior distribution of \eqn{\Sigma}, equal to \eqn{\nu_0 + n - m + 1}.
+  - `cov_matrix`: The covariance matrix for the marginal posterior distribution of \eqn{B | X, Y}, computed as \eqn{V_n / \text{df} \otimes (X'X + A)^{-1}}.
+- `A`: The precision matrix used for \eqn{B}.
+- `formula`: The formula specifying the model.
+- `X`: The design matrix of covariates.
+- `Y`: The response matrix.
+- `call`: The original function call.
+
+## Details:
+The analytic posterior distributions are computed using the following theoretical results:
+- The posterior distribution of the coefficient matrix \eqn{B} is derived using the matrix-variate normal distribution:
+\deqn{B | \Sigma, Y, X \sim \mathcal{N}(B_n, \Sigma \otimes (X'X + A)^{-1})}
+where \eqn{B_n} is the posterior mean and \eqn{\Sigma \otimes (X'X + A)^{-1}} is the Kronecker product of the covariance matrix \eqn{\Sigma} and the precision matrix of the covariates.
+
+- The posterior distribution of the covariance matrix \eqn{\Sigma} follows an inverse-Wishart distribution:
+\deqn{\Sigma | Y, X \sim \text{IW}(\nu_0 + n, V_0 + S)}
+where \eqn{S} is the sum of the squared residuals and the deviation of \eqn{B_n} from its prior mean \eqn{B_0}.
 }
 \examples{
 \dontrun{

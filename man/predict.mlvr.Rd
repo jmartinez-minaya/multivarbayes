@@ -14,7 +14,7 @@
 \item{n_sims}{Number of predictive simulations (optional, default is 1000).}
 }
 \value{
-A list containing both analytical and simulated predictive distributions.
+A list containing summaries, analytical and simulated predictive distributions, and marginals.
 }
 \description{
 This function generates both analytical and simulated predictive distributions for new data

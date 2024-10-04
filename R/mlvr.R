@@ -130,28 +130,67 @@ format_marginals_random <- function(Sigma_sims) {
 
 #' Main function to fit the Bayesian Multivariate Linear Model
 #'
-#' This function fits a Bayesian multivariate linear regression model and returns a detailed output
-#' including summaries and simulations of fixed effects and hyperparameters.
+#' This function fits a Bayesian multivariate linear regression model using conjugate priors 
+#' and returns a detailed output, including summaries and simulations of fixed effects and 
+#' hyperparameters, as well as analytic posterior distributions.
 #'
-#' ## Priors:
-#' - `A`: Precision matrix for `B`. Default is an identity matrix of size `k`.
-#' - `V0`: Scale matrix for the covariance matrix `Sigma`. Default is an identity matrix of size `m`.
-#' - `nu0`: Degrees of freedom for the inverse-Wishart distribution. Default is `m + 2`.
-#' - `B0`: Prior mean for the coefficients `B`. Default is a zero matrix.
+#' ## Model and Priors:
+#' The model assumes a multivariate normal distribution for the response variables:
+#' \deqn{Y = XB + E}
+#' where \eqn{Y} is the matrix of response variables, \eqn{X} is the matrix of covariates,
+#' \eqn{B} is the matrix of coefficients, and \eqn{E} is the error matrix.
+#' 
+#' The following prior distributions are used:
+#' - \eqn{B} | \eqn{\Sigma} follows a matrix-variate normal distribution:
+#'   \deqn{B | \Sigma \sim \mathcal{N}(B_0, \Sigma \otimes A^{-1})}
+#' - \eqn{\Sigma} follows an inverse-Wishart distribution:
+#'   \deqn{\Sigma \sim \text{IW}(\nu_0, V_0)}
+#' 
+#' ## Posterior Distributions:
+#' - The posterior of \eqn{B} given \eqn{\Sigma} is:
+#'   \deqn{B | \Sigma, Y, X \sim \mathcal{N}(B_n, \Sigma \otimes (X'X + A)^{-1})}
+#' - The marginal posterior of \eqn{\Sigma} given \eqn{Y, X} is:
+#'   \deqn{\Sigma | Y, X \sim \text{IW}(\nu_0 + n, V_0 + S)}
+#' 
+#' The analytic forms of the posterior parameters are computed as follows:
+#' - \eqn{B_n = (X'X + A)^{-1}(X'Y + A B_0)}
+#' - \eqn{V_n = V_0 + S}, where \eqn{S = (Y - X B_n)'(Y - X B_n) + (B_n - B_0)' A (B_n - B_0)}
 #'
-#' ## Posteriors:
-#' - The posterior of `B` follows a multivariate normal distribution.
-#' - The posterior of `Sigma` follows an inverse-Wishart distribution.
+#' ## Output:
+#' The function returns a list containing:
+#' - `summary.fixed`: A summary of the marginal posterior distributions of the fixed effects.
+#' - `marginals.fixed`: A list with the simulations of the fixed effects.
+#' - `summary.hyperpar`: A summary of the posterior distributions of the hyperparameters (elements of \eqn{\Sigma}).
+#' - `marginals.hyperpar`: A list with the simulations of the hyperparameters.
+#' - `analytic`: A list containing the following analytic posterior parameters:
+#'   - `B_n`: The posterior mean of the coefficient matrix \eqn{B}, calculated as \eqn{(X'X + A)^{-1}(X'Y + A B_0)}.
+#'   - `V_n`: The posterior scale matrix for the inverse-Wishart distribution of \eqn{\Sigma}, given by \eqn{V_0 + S}.
+#'   - `df`: The degrees of freedom for the marginal posterior distribution of \eqn{\Sigma}, equal to \eqn{\nu_0 + n - m + 1}.
+#'   - `cov_matrix`: The covariance matrix for the marginal posterior distribution of \eqn{B | X, Y}, computed as \eqn{V_n / \text{df} \otimes (X'X + A)^{-1}}.
+#' - `A`: The precision matrix used for \eqn{B}.
+#' - `formula`: The formula specifying the model.
+#' - `X`: The design matrix of covariates.
+#' - `Y`: The response matrix.
+#' - `call`: The original function call.
+#'
+#' ## Details:
+#' The analytic posterior distributions are computed using the following theoretical results:
+#' - The posterior distribution of the coefficient matrix \eqn{B} is derived using the matrix-variate normal distribution:
+#' \deqn{B | \Sigma, Y, X \sim \mathcal{N}(B_n, \Sigma \otimes (X'X + A)^{-1})}
+#' where \eqn{B_n} is the posterior mean and \eqn{\Sigma \otimes (X'X + A)^{-1}} is the Kronecker product of the covariance matrix \eqn{\Sigma} and the precision matrix of the covariates.
+#' 
+#' - The posterior distribution of the covariance matrix \eqn{\Sigma} follows an inverse-Wishart distribution:
+#' \deqn{\Sigma | Y, X \sim \text{IW}(\nu_0 + n, V_0 + S)}
+#' where \eqn{S} is the sum of the squared residuals and the deviation of \eqn{B_n} from its prior mean \eqn{B_0}.
 #'
 #' @param formula Formula to specify the model.
 #' @param data A data frame containing the covariates and response variables.
 #' @param priors A list specifying the prior parameters. Default is `list()`.
 #' @param n_sims Number of posterior simulations. Default is 1000.
-#' @return A list containing summaries, simulations of fixed effects and hyperparameters, and the fitted model.
+#' @return A list containing summaries, simulations of fixed effects and hyperparameters, and the analytic posterior distributions.
 #' @import MASS
 #' @import MCMCpack
 #' @importFrom stats model.frame model.response model.matrix
-
 #' @examples
 #' \dontrun{
 #' data <- data.frame(X1 = rnorm(100), X2 = rnorm(100), Y1 = rnorm(100), Y2 = rnorm(100))
@@ -216,10 +255,10 @@ mlvr <- function(formula, data, priors = list(), n_sims = 1000) {
     marginals.fixed = marginals_fixed,
     summary.hyperpar = summary_hyperpar,
     marginals.hyperpar = marginals_random,
-    B_n = B_n,
-    V_n = V_n,
-    df = df,
-    cov_matrix = cov_matrix,
+    analytic = list(B_n = B_n,
+                    V_n = V_n,
+                    df = df,
+                    cov_matrix = cov_matrix),
     A = A,
     formula = formula,
     X = X,
@@ -230,6 +269,8 @@ mlvr <- function(formula, data, priors = list(), n_sims = 1000) {
   class(model_fit) <- "mlvr"
   return(model_fit)
 }
+
+
 
 
 #' Summary of a Bayesian Multivariate Linear Model
@@ -351,7 +392,7 @@ plot.mlvr <- function(x, ...) {
 #' @param object An object of class `mlvr` containing posterior simulations of the model.
 #' @param newdata A data frame containing new observations for which predictions are to be made.
 #' @param n_sims Number of predictive simulations (optional, default is 1000).
-#' @return A list containing both analytical and simulated predictive distributions.
+#' @return A list containing summaries, analytical and simulated predictive distributions, and marginals.
 #' @import mvtnorm
 #' @author Joaquín Martínez-Minaya \email{jmarmin@eio.upv.es}
 #' @export
@@ -361,13 +402,13 @@ predict.mlvr <- function(object, newdata, n_sims = 1000) {
   X_new <- model.matrix(~ ., data = newdata)
   
   # Extract parameters from the fitted model
-  B_n <- object$B_n                       # Posterior mean of the coefficient matrix B
-  V_n <- object$V_n                       # Posterior scale matrix for Sigma
-  df <- object$df                         # Degrees of freedom for the predictive t-distribution
-  cov_B <- object$cov_matrix              # Posterior covariance matrix of B (dimensions: (k * m) x (k * m))
-  n_new <- nrow(X_new)                    # Number of new observations in `newdata`
-  m <- ncol(object$Y)                     # Number of response variables
-  k <- ncol(object$X)                     # Number of predictors (including intercept)
+  B_n <- object$analytic$B_n                   # Posterior mean of the coefficient matrix B
+  V_n <- object$analytic$V_n                   # Posterior scale matrix for Sigma
+  df <- object$analytic$df                     # Degrees of freedom for the predictive t-distribution
+  cov_B <- object$analytic$cov_matrix          # Posterior covariance matrix of B (dimensions: (k * m) x (k * m))
+  n_new <- nrow(X_new)                         # Number of new observations in `newdata`
+  m <- ncol(object$Y)                          # Number of response variables
+  k <- ncol(object$X)                          # Number of predictors (including intercept)
   
   # Analytical Predictive Distribution
   # Initialize storage for predictive mean and covariance matrices
@@ -432,9 +473,28 @@ predict.mlvr <- function(object, newdata, n_sims = 1000) {
     }
   }
   
-  # Return both analytical and simulated predictive distributions
+  # Summary of predictive means (analytical)
+  summary_analytic <- list()
+  for (i in 1:m) {
+    summary_analytic[[paste0("Y", i)]] <- data.frame(
+      mean = predictive_mean[, i],
+      sd = apply(predictive_cov[i, i, , drop = FALSE], 3, sqrt),
+      lower_2.5 = predictive_mean[, i] - 1.96 * apply(predictive_cov[i, i, , drop = FALSE], 3, sqrt),
+      median = predictive_mean[, i],
+      upper_97.5 = predictive_mean[, i] + 1.96 * apply(predictive_cov[i, i, , drop = FALSE], 3, sqrt)
+    )
+  }
+  
+  # Convert simulated predictions to a structured list
+  marginals <- list()
+  for (j in 1:m) {
+    marginals[[paste0("Y", j)]] <- predictive_samples[, j, ]
+  }
+  
+  # Return both analytical and simulated predictive distributions along with summaries
   return(list(
+    summary = summary_analytic,
     analytical = list(mean = predictive_mean, cov_matrix = predictive_cov, df = df),
-    simulated = list(predictive_samples = predictive_samples)
+    marginals = marginals
   ))
 }

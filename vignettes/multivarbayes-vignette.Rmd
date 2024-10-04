@@ -23,11 +23,7 @@ library(multivarbayes)
 We generate some example data with an intercept term and multivariate normal errors.
 
 ```{r, warning=FALSE, message = FALSE}
-# Load required packages
-library(MASS)   # for mvrnorm
-library(ggplot2) # for plotting
-library(ks)      # for kernel density estimates
-library(MCMCpack)
+ library(ggplot2) # for plotting
 library(dplyr)
 
 set.seed(123)
@@ -61,6 +57,7 @@ We fit the model using the `mlvr` function and the formula interface.
 ```{r}
 formula <- as.matrix(data[, c("Y1", "Y2")]) ~  X1 + X2
 model_fit <- mlvr(formula, data = data)
+model_fit$analytic
 ```
 
 ### Summarize the Fitted Model
@@ -82,8 +79,8 @@ plot(model_fit)
 
 
 ```{r}
-B_true
 summary(model_fit)
+B_true
 ```
 
 
@@ -100,6 +97,9 @@ newdata <- data[1:5, c("X1", "X2")]
 newdata_real <- data[1:5, c("Y1", "Y2")]
 
 predictions <- predict(model_fit, newdata = newdata)
+
+predictions$summary
+predictions$marginals$Y1 %>% dim(.)
 ```
 
 
@@ -107,48 +107,56 @@ predictions <- predict(model_fit, newdata = newdata)
 
 
 ```{r}
-# Extract predictions
-predictive_simulated <- predictions$simulated$predictive_samples  # Simulated predictive samples
-predictive_mean <- predictions$analytical$mean                    # Theoretical predictive mean
-predictive_cov <- predictions$analytical$cov_matrix               # Theoretical predictive covariance
-df <- predictions$analytical$df                                   # Degrees of freedom for t-Student distribution
+# Supongamos que `predictions` es el objeto con los resultados obtenidos de la función `predict.mlvr`
+# y `newdata_real` contiene los valores reales para cada individuo predicho.
 
-# Create a data frame for storing simulated predictive samples
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Extraer los elementos necesarios de predictions
+analytic_mean <- predictions$analytic$mean          # Media predictiva teórica
+analytic_cov <- predictions$analytic$cov_matrix     # Covarianza predictiva teórica
+predictive_samples <- predictions$marginals         # Muestras predictivas simuladas
+df <- predictions$analytic$df                       # Grados de libertad para la t-Student
+newdata_real <- newdata_real                        # Valores reales proporcionados
+
+# Crear un data frame para almacenar las muestras predictivas simuladas
 simulated_data <- data.frame()
-n_sims <- dim(predictive_simulated)[3]  # Number of simulations
-n_obs <- nrow(newdata)                  # Number of new observations
-n_responses <- ncol(predictive_simulated)  # Number of response variables
+n_obs <- nrow(analytic_mean)                        # Número de observaciones en newdata
+n_sims <- ncol(predictive_samples[[1]])             # Número de simulaciones (suponemos que todas las respuestas tienen el mismo número de simulaciones)
+n_responses <- length(predictive_samples)           # Número de variables de respuesta
 
-# Construct a data frame for simulated samples using loops
-for (obs in 1:n_obs) {
-  for (i in 1:n_sims) {
-    sim_values <- predictive_simulated[obs, , i]  # Extract simulated values for each response variable
+# Construir el data frame de muestras predictivas simuladas
+for (resp in 1:n_responses) {
+  for (obs in 1:n_obs) {
+    sim_values <- predictive_samples[[resp]][obs, ]  # Muestras simuladas para la variable de respuesta y observación
     sim_df <- data.frame(
-      Observation = paste0("Obs_", obs),          # Label each observation
-      Response = paste0("Y", 1:n_responses),      # Response variable names (Y1, Y2, ...)
-      Value = sim_values,                         # Simulated values for each response
-      Group = "Simulated"                         # Group label to distinguish simulated from theoretical
+      Observation = paste0("Obs_", obs),             # Etiqueta de observación
+      Response = paste0("Y", resp),                  # Nombre de la variable de respuesta
+      Value = sim_values,                            # Muestras simuladas
+      Group = "Simulated"                            # Etiqueta de grupo
     )
     simulated_data <- rbind(simulated_data, sim_df)
   }
 }
 
-# Create a data frame for theoretical densities
+# Crear un data frame para las densidades teóricas
 theoretical_data <- data.frame()
 
-# Calculate the theoretical density for each observation and response variable
+# Calcular la densidad teórica para cada observación y variable de respuesta
 for (obs in 1:n_obs) {
   for (resp in 1:n_responses) {
-    mean_val <- predictive_mean[obs, resp]          # Theoretical mean for the response variable
-    var_val <- predictive_cov[resp, resp, obs]      # Variance of the response variable
+    mean_val <- analytic_mean[obs, resp]          # Media teórica para la variable de respuesta
+    var_val <- analytic_cov[resp, resp, obs]      # Varianza para la variable de respuesta
     
-    # Create a sequence of values for representing the theoretical density
+    # Crear secuencia de valores para representar la densidad teórica
     x_vals <- seq(mean_val - 4 * sqrt(var_val), mean_val + 4 * sqrt(var_val), length.out = 500)
     
-    # Calculate the density using the t-Student distribution
+    # Calcular la densidad usando la distribución t-Student
     dens_vals <- dt((x_vals - mean_val) / sqrt(var_val), df = df) / sqrt(var_val)
     
-    # Create a data frame to store the theoretical density values
+    # Crear data frame para almacenar las densidades teóricas
     theor_df <- data.frame(
       Observation = paste0("Obs_", obs),
       Response = paste0("Y", resp),
@@ -160,46 +168,43 @@ for (obs in 1:n_obs) {
   }
 }
 
-# Recalculate the simulated densities using density() function for proper comparison
+# Crear el data frame para los valores reales observados
+real_values_data <- data.frame(
+  Observation = rep(paste0("Obs_", 1:n_obs), each = n_responses),  # Observaciones etiquetadas
+  Response = rep(paste0("Y", 1:n_responses), times = n_obs),       # Nombre de la variable de respuesta
+  Value = as.vector(t(newdata_real)),                              # Convertir los valores reales a un vector
+  Group = "Real"                                                   # Etiqueta de grupo para "Real"
+)
+
+# Convertir los datos simulados a densidades para graficar
 simulated_densities <- simulated_data %>%
   group_by(Observation, Response) %>%
   do({
-    density_data <- density(.$Value, adjust = 1.2)  # Calculate density for simulated values
-    data.frame(Value = density_data$x, Density = density_data$y)  # Store density values
+    density_data <- density(.$Value, adjust = 1.2)  # Calcular densidad para las muestras simuladas
+    data.frame(Value = density_data$x, Density = density_data$y)  # Almacenar valores de densidad
   }) %>%
   ungroup() %>%
-  mutate(Group = "Simulated")  # Label as "Simulated" for plotting
+  mutate(Group = "Simulated")  # Etiqueta como "Simulated" para graficar
 
-# Combine theoretical and simulated densities into a single data frame for plotting
+# Unir las densidades teóricas y simuladas en un solo data frame
 plot_data <- rbind(simulated_densities, theoretical_data)
 
-# Create a data frame for real observed values
-real_values_data <- data.frame(
-  Observation = rep(paste0("Obs_", 1:n_obs), each = n_responses),
-  Response = rep(paste0("Y", 1:n_responses), times = n_obs),
-  Value = as.vector(t(newdata_real)),  # Convert real values to a single vector
-  Group = "Real"
-)
-
-# Plot histograms for simulated samples, lines for theoretical densities, and points for real values
+# Crear los gráficos
 ggplot() +
-  # Histogram of simulated predictive samples
-  geom_histogram(data = simulated_data, aes(x = Value, y = ..density.., fill = Group), 
-                 bins = 30, alpha = 0.4, position = 'identity') +
-  # Line plot of theoretical densities
-  geom_line(data = theoretical_data, aes(x = Value, y = Density, color = Group), size = 1.2) +
-  # Points for real observed values
-  geom_point(data = real_values_data, aes(x = Value, y = 0, color = Group), size = 3, shape = 16) +
-  facet_grid(Response ~ Observation, scales = "free") +  # Facet by Response and Observation
-  labs(title = "Posterior Predictive Distribution for Each Observation",
+  # Histogramas para las muestras predictivas simuladas
+  geom_line(data = simulated_densities, aes(x = Value, y = Density, color = Group), size = 1.2) +
+  # Línea para las densidades teóricas
+  geom_line(data = theoretical_data, aes(x = Value, y = Density, color = Group), linetype = "dashed", size = 1.2) +
+  # Línea vertical para los valores reales observados
+  geom_vline(data = real_values_data, aes(xintercept = Value, color = Group), linetype = "dotted", size = 1.2) +
+  facet_grid(Response ~ Observation, scales = "free") +  # Subgráficos por respuesta y observación
+  labs(title = "Predictive Distributions for Each Observation",
        x = "Value",
        y = "Density") +
   theme_minimal() +
   theme(legend.position = "top", legend.title = element_text(face = "bold")) +
-  scale_fill_manual(values = c("orange", "blue")) +  # Colors for histograms
-  scale_color_manual(values = c("black", "red", "green")) +   # Colors for theoretical densities and real values
-  guides(fill = guide_legend(title = "Simulated vs Theoretical vs Real"), 
-         color = guide_legend(title = "Simulated vs Theoretical vs Real"))
+  scale_color_manual(values = c("blue", "red", "green")) +   # Colores para las distribuciones y valores reales
+  guides(color = guide_legend(title = "Distribution Types"))
 
 
 ```
