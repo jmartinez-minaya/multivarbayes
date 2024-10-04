@@ -18,7 +18,9 @@ Imports:
 Suggests:
     knitr,
     rmarkdown,
-    ks
+    ks,
+    brms,
+    patchwork
 Encoding: UTF-8
 Description: A package to fit a multivariate linear model with Bayesian inference using t-distributions.
 License: MIT + file LICENSE
