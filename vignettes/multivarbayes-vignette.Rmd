@@ -100,9 +100,11 @@ newdata <- data[1:5, c("X1", "X2")]
 newdata_real <- data[1:5, c("Y1", "Y2")]
 
 predictions <- predict(model_fit, newdata = newdata)
+#cat("--- Y1 --- \n")
+predictions$summary$Y1 %>% round(.,3)
 
-summary(predictions)
-
+#cat("--- Y2 --- \n")
+predictions$summary$Y2 %>% round(., 3)
 ```
 In this final part, we compare the theoretical predictive distribution with the simulated predictive distribution, as well as with the actual observed values. This allows us to visually inspect how well the model captures the underlying data distribution and the uncertainty associated with it.
 
