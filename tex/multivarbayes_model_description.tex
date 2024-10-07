@@ -1,0 +1,123 @@
+
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{geometry}
+
+\geometry{a4paper, margin=1in}
+
+\title{Multivariate Linear Regression with Bayesian Inference}
+\author{Joaquín Martínez-Minaya}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Multivariate Linear Regression Model}
+
+We define the multivariate linear regression model as:
+
+\[
+\bm{Y} = \bm{X} \bm{B} + \bm{E}
+\]
+
+where:
+\begin{itemize}
+    \item \(\bm{Y}\) is an \(n \times m\) matrix of response variables, where \(n\) is the number of observations and \(m\) is the number of response variables.
+    \item \(\bm{X}\) is an \(n \times k\) matrix of covariates, where \(k\) is the number of covariates (including the intercept).
+    \item \(\bm{B}\) is a \(k \times m\) matrix of coefficients.
+    \item \(\bm{E}\) is an \(n \times m\) matrix of errors, assumed to follow a multivariate normal distribution: \(\bm{E} \sim \mathcal{N}(\bm{0}, \bm{\Sigma})\).
+\end{itemize}
+
+\section{Prior Distributions}
+
+We use conjugate prior distributions for the coefficients matrix \(\bm{B}\) and the covariance matrix \(\bm{\Sigma}\).
+
+\subsection{Prior for the Coefficient Matrix \(\bm{B}\)}
+
+The prior distribution for the coefficient matrix \(\bm{B}\) given the covariance matrix \(\bm{\Sigma}\) is defined as a matrix normal distribution:
+
+\[
+\bm{B} \mid \bm{\Sigma} \sim \mathcal{N}(\bm{B}_0, \bm{\Sigma} \otimes \bm{A}^{-1})
+\]
+
+where:
+\begin{itemize}
+    \item \(\bm{B}_0\) is a \(k \times m\) matrix of prior means, typically set to zero.
+    \item \(\bm{A}\) is a \(k \times k\) precision matrix for the covariates. By default, it is set as an identity matrix, \(\bm{A} = \bm{I}_k\).
+    \item \(\bm{\Sigma}\) is the covariance matrix of the response variables.
+\end{itemize}
+
+\subsection{Prior for the Covariance Matrix \(\bm{\Sigma}\)}
+
+The prior distribution for the covariance matrix \(\bm{\Sigma}\) follows an inverse-Wishart distribution:
+
+\[
+\bm{\Sigma} \sim \text{IW}(\nu_0, \bm{V}_0)
+\]
+
+where:
+\begin{itemize}
+    \item \(\nu_0\) is the degrees of freedom parameter, set as \(\nu_0 = m + 2\).
+    \item \(\bm{V}_0\) is a \(m \times m\) scale matrix, set as an identity matrix \(\bm{V}_0 = \bm{I}_m\).
+\end{itemize}
+
+\section{Posterior Distributions}
+
+Given the prior distributions and observed data, the posterior distributions for the parameters are derived as follows:
+
+\subsection{Posterior of \(\bm{B} \mid \bm{\Sigma}, \bm{Y}, \bm{X}\)}
+
+The conditional posterior distribution of the coefficient matrix \(\bm{B}\) given the covariance matrix \(\bm{\Sigma}\) is a matrix normal distribution:
+
+\[
+\bm{B} \mid \bm{\Sigma}, \bm{Y}, \bm{X} \sim \mathcal{N}(\bm{B}_n, \bm{\Sigma} \otimes (\bm{X}^T \bm{X} + \bm{A})^{-1})
+\]
+
+where:
+\[
+\bm{B}_n = (\bm{X}^T \bm{X} + \bm{A})^{-1} (\bm{X}^T \bm{Y} + \bm{A} \bm{B}_0)
+\]
+
+\subsection{Marginal Posterior of \(\bm{\Sigma} \mid \bm{Y}, \bm{X}\)}
+
+The marginal posterior distribution of the covariance matrix \(\bm{\Sigma}\) follows an inverse-Wishart distribution:
+
+\[
+\bm{\Sigma} \mid \bm{Y}, \bm{X} \sim \text{IW}(\nu_0 + n, \bm{V}_0 + \bm{S})
+\]
+
+where:
+\[
+\bm{S} = (\bm{Y} - \bm{X} \bm{B}_n)^T (\bm{Y} - \bm{X} \bm{B}_n) + (\bm{B}_n - \bm{B}_0)^T \bm{A} (\bm{B}_n - \bm{B}_0)
+\]
+
+\subsection{Marginal Posterior of \(\bm{B} \mid \bm{Y}, \bm{X}\)}
+
+The marginal posterior distribution of the coefficient matrix \(\bm{B}\) is a matrix \(t\)-distribution:
+
+\[
+\bm{B} \mid \bm{Y}, \bm{X} \sim \mathcal{T}(\bm{B}_n, \bm{\Sigma}_n \otimes (\bm{X}^T \bm{X} + \bm{A})^{-1}, \nu_n)
+\]
+
+where:
+\begin{itemize}
+    \item \(\bm{B}_n\) is the posterior mean of \(\bm{B}\).
+    \item \(\bm{\Sigma}_n = (\bm{V}_0 + \bm{S}) / (\nu_0 + n - m + 1)\) is the scale matrix for \(\bm{\Sigma}\).
+    \item \(\nu_n = \nu_0 + n - m + 1\) is the degrees of freedom for the \(t\)-distribution.
+\end{itemize}
+
+\section{Posterior Predictive Distribution}
+
+The posterior predictive distribution for a new observation \(\bm{x}^*\) is given by:
+
+\[
+\bm{Y}^* \mid \bm{Y}, \bm{X}, \bm{x}^* \sim \mathcal{T}(\bm{x}^* \bm{B}_n, \bm{\Sigma}_n (1 + \bm{x}^{*T} (\bm{X}^T \bm{X} + \bm{A})^{-1} \bm{x}^*), \nu_n)
+\]
+
+This distribution captures both the uncertainty in the estimation of \(\bm{B}\) and the variability in the new data point \(\bm{Y}^*\).
+
+\end{document}
