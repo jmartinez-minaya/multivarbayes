@@ -250,18 +250,29 @@ responses for new observations based on the fitted model.</p>
 <span><span class="va">newdata_real</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Y1"</span>, <span class="st">"Y2"</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">predictions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">model_fit</span>, newdata <span class="op">=</span> <span class="va">newdata</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">predictions</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##            Length Class  Mode</span></span>
-<span><span class="co">## summary    2      -none- list</span></span>
-<span><span class="co">## analytical 3      -none- list</span></span>
-<span><span class="co">## marginals  2      -none- list</span></span></code></pre>
+<span><span class="co">#cat("--- Y1 --- \n")</span></span>
+<span><span class="va">predictions</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">Y1</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">.</span>,<span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##    mean    sd lower_2.5 median upper_97.5</span></span>
+<span><span class="co">## 1 0.989 0.959    -0.891  0.989      2.868</span></span>
+<span><span class="co">## 2 1.160 0.959    -0.719  1.160      3.040</span></span>
+<span><span class="co">## 3 1.746 0.959    -0.134  1.746      3.627</span></span>
+<span><span class="co">## 4 1.058 0.958    -0.821  1.058      2.936</span></span>
+<span><span class="co">## 5 1.747 0.962    -0.138  1.747      3.632</span></span></code></pre>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#cat("--- Y2 --- \n")</span></span>
+<span><span class="va">predictions</span><span class="op">$</span><span class="va">summary</span><span class="op">$</span><span class="va">Y2</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">.</span>, <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">##     mean    sd lower_2.5 median upper_97.5</span></span>
+<span><span class="co">## 1  1.253 1.009    -0.724  1.253      3.230</span></span>
+<span><span class="co">## 2  1.037 1.009    -0.940  1.037      3.014</span></span>
+<span><span class="co">## 3  1.150 1.009    -0.828  1.150      3.128</span></span>
+<span><span class="co">## 4  1.805 1.008    -0.171  1.805      3.781</span></span>
+<span><span class="co">## 5 -0.684 1.011    -2.667 -0.684      1.298</span></span></code></pre>
 <p>In this final part, we compare the theoretical predictive
 distribution with the simulated predictive distribution, as well as with
 the actual observed values. This allows us to visually inspect how well
 the model captures the underlying data distribution and the uncertainty
 associated with it.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Suppose `predictions` is the object containing the results obtained from the `predict.mlvr` function</span></span>
 <span><span class="co"># and `newdata_real` holds the actual values for each predicted individual.</span></span>
 <span><span class="co"># Extract necessary elements from predictions</span></span>
